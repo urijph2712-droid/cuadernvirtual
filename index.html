@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2c3e50">
+  <title>POS Control Interno</title>
+  <link rel="manifest" href="./manifest.json">
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --success: #27ae60;
+      --danger: #c0392b;
+      --warning: #e67e22;
+      --light: #f3f5f7;
+      --muted: #667085;
+      --info: #eef7ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      min-height: 100vh;
+      background: #f4f6f7;
+      color: #222;
+      font-family: system-ui, sans-serif;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      padding: 11px;
+      border: 0;
+      border-radius: 7px;
+      color: white;
+      background: var(--primary);
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    button:hover { filter: brightness(.92); }
+    input {
+      width: 100%;
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid #cbd0d5;
+      border-radius: 7px;
+    }
+
+    .success { background: var(--success); }
+    .danger { background: var(--danger); }
+    .warning { background: var(--warning); }
+
+    .hidden { display: none !important; }
+
+    .login-screen {
+      min-height: calc(100vh - 32px);
+      display: grid;
+      place-items: center;
+    }
+
+    .login-card, .panel, .topbar, .status {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.08);
+    }
+
+    .login-card {
+      width: min(420px, 100%);
+      padding: 22px;
+    }
+
+    .login-card h1 {
+      margin-top: 0;
+      color: var(--primary);
+    }
+
+    .login-form, .actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .app-screen { display: none; }
+    .app-screen.active { display: block; }
+
+    .status {
+      margin-bottom: 14px;
+      padding: 12px;
+      text-align: center;
+      color: #155724;
+      background: #d4edda;
+      font-weight: 650;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 12px 16px;
+    }
+
+    .user-name { color: var(--primary); font-weight: 700; }
+    .role-badge {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #eef7ff;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--light);
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .product-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .table-wrap {
+      max-height: 55vh;
+      overflow: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 9px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+    th { background: var(--light); }
+
+    .stock-low {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .rate {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 7px;
+      background: #fff3cd;
+    }
+    .rate input { max-width: 135px; }
+
+    #lector-ventas {
+      width: 100%;
+      margin-bottom: 10px;
+      background: var(--info);
+    }
+
+    .cart-list {
+      min-height: 100px;
+      max-height: 260px;
+      overflow: auto;
+      margin-bottom: 12px;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    .cart-detail { flex: 1; }
+    .cart-controls { display: flex; gap: 5px; }
+    .cart-controls button {
+      min-width: 36px;
+      padding: 5px 9px;
+    }
+
+    .totals {
+      padding: 14px;
+      border-radius: 7px;
+      background: var(--light);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .total-bs { margin-top: 6px; color: var(--danger); }
+
+    .actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    #reporte-ventas {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      border-radius: 7px;
+      font-size: 14px;
+    }
+
+    #reporte-ventas h3 {
+      margin: 4px 0 10px;
+      color: var(--primary);
+    }
+
+    .report-line { margin: 8px 0; }
+
+    @media (max-width: 800px) {
+      body { padding: 10px; }
+      .layout { grid-template-columns: 1fr; }
+      .table-wrap { max-height: 40vh; }
+    }
+
+    @media (max-width: 480px) {
+      .topbar { flex-wrap: wrap; }
+      .product-form { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+      th, td { padding: 7px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <h1>POS Control Interno</h1>
+      <p class="small">Inicia sesión para usar la caja.</p>
+
+      <form id="login-form" class="login-form">
+        <input id="login-user" autocomplete="username" placeholder="Usuario" required>
+        <input id="login-pass" type="password" autocomplete="current-password" placeholder="Contraseña" required>
+        <button class="success" type="submit">Ingresar</button>
+      </form>
+
+      <p class="small">
+        Usuarios iniciales: <b>admin / admin123</b> y
+        <b>cajero / cajero123</b>. Cambia estas claves en el código si quieres.
+      </p>
+    </div>
+  </div>
+
+  <main id="app-screen" class="app-screen">
+    <div class="status">
+      Aplicación local: los datos se guardan en este dispositivo.
+    </div>
+
+    <header class="topbar">
+      <div>
+        <div id="user-name" class="user-name"></div>
+        <div id="user-role" class="small"></div>
+      </div>
+      <span id="role-badge" class="role-badge"></span>
+      <button id="logout" class="warning" type="button">Cerrar sesión</button>
+    </header>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>📦 Inventario</h2>
+
+        <form id="product-form" class="product-form admin-only">
+          <input id="prod-codigo" class="full" placeholder="Código de barra" required>
+          <input id="prod-nombre" class="full" placeholder="Nombre del producto" required>
+          <input id="prod-precio" type="number" min="0" step="0.01" placeholder="Precio USD" required>
+          <input id="prod-stock" type="number" min="0" step="1" placeholder="Stock" required>
+          <button class="success full" type="submit">Guardar producto</button>
+        </form>
+
+        <p class="small admin-only">
+          Se marca como stock bajo cuando hay
+          <span id="limite-stock-texto"></span> unidades o menos.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código / Producto</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th class="admin-only">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-productos"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>🛒 Caja</h2>
+
+        <label class="rate">
+          <span>Tasa (Bs.):</span>
+          <input id="tasa-cambio" type="number" min="0" step="0.01">
+        </label>
+
+        <input id="lector-ventas" placeholder="Escanea código y presiona Enter" autocomplete="off">
+
+        <div id="items-carrito" class="cart-list"></div>
+
+        <div class="totals">
+          <div class="total-row">
+            <span>Total USD:</span><span id="total-usd">$0.00</span>
+          </div>
+          <div class="total-row total-bs">
+            <span>Total Bs:</span><span id="total-bs">0,00 Bs</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="procesar-venta" class="success" type="button">
+            Registrar venta y descontar stock
+          </button>
+          <button id="vaciar-carrito" class="danger" type="button">
+            Vaciar carrito
+          </button>
+
+          <button id="ver-informe" class="admin-only" type="button">
+            📊 Informe semanal y stock bajo
+          </button>
+
+          <button id="guardar-copia" class="admin-only" type="button">
+            💾 Descargar copia de seguridad
+          </button>
+
+          <button id="restaurar-copia" class="admin-only" type="button">
+            📂 Restaurar copia
+          </button>
+
+          <input id="archivo-copia" type="file" accept=".json,application/json" hidden>
+        </div>
+
+        <div id="reporte-ventas" hidden aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    "use strict";
+
+    const USERS = {
+      admin: { password: "admin123", role: "admin" },
+      cajero: { password: "cajero123", role: "cajero" }
+    };
+
+    const LIMITE_STOCK_BAJO = 5;
+    const DB_NAME = "pos_local_db_v2";
+    const DB_VERSION = 1;
+
+    let db = null;
+    let usuarioActual = null;
+    let inventario = [];
+    let historialVentas = [];
+    let carrito = [];
+
+    const $ = (id) => document.getElementById(id);
+
+    function abrirBaseDatos() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = () => {
+          const base = request.result;
+
+          if (!base.objectStoreNames.contains("productos")) {
+            base.createObjectStore("productos", { keyPath: "codigo" });
+          }
+
+          if (!base.objectStoreNames.contains("ventas")) {
+            base.createObjectStore("ventas", {
+              keyPath: "id",
+              autoIncrement: true
+            });
+          }
+
+          if (!base.objectStoreNames.contains("ajustes")) {
+            base.createObjectStore("ajustes", { keyPath: "clave" });
+          }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function transaccionTerminada(tx) {
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error("Transacción cancelada"));
+      });
+    }
+
+    function leerTodo(storeName) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readonly");
+        const req = tx.objectStore(storeName).getAll();
+
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function cargarTasa() {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("ajustes", "readonly");
+        const req = tx.objectStore("ajustes").get("tasa");
+
+        req.onsuccess = () => resolve(req.result?.valor ?? "60");
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function guardarTasa(valor) {
+      const tx = db.transaction("ajustes", "readwrite");
+      const done = transaccionTerminada(tx);
+      tx.objectStore("ajustes").put({ clave: "tasa", valor: String(valor) });
+      await done;
+    }
+
+    async function cargarDatos() {
+      inventario = await leerTodo("productos");
+      historialVentas = await leerTodo("ventas");
+      $("tasa-cambio").value = await cargarTasa();
+    }
+
+    function esAdmin() {
+      return usuarioActual && usuarioActual.role === "admin";
+    }
+
+    function requireAdmin() {
+      if (esAdmin()) return true;
+      alert("Esta opción es solo para el administrador.");
+      return false;
+    }
+
+    function mostrarApp() {
+      const loginScreen = $("login-screen");
+      const appScreen = $("app-screen");
+
+      if (!usuarioActual) {
+        loginScreen.classList.remove("hidden");
+        appScreen.classList.remove("active");
+        return;
+      }
+
+      loginScreen.classList.add("hidden");
+      appScreen.classList.add("active");
+
+      $("user-name").textContent = usuarioActual.username;
+      $("user-role").textContent = usuarioActual.role === "admin" ? "Administrador" : "Cajero";
+      $("role-badge").textContent = usuarioActual.role === "admin" ? "ADMIN" : "CAJERO";
+
+      document.querySelectorAll(".admin-only").forEach((el) => {
+        el.classList.toggle("hidden", !esAdmin());
+      });
+
+      $("tasa-cambio").readOnly = !esAdmin();
+    }
+
+    function crearCelda(texto) {
+      const td = document.createElement("td");
+      td.textContent = texto;
+      return td;
+    }
+
+    function actualizarTablaProductos() {
+      const tabla = $("tabla-productos");
+      tabla.replaceChildren();
+
+      for (const producto of inventario) {
+        const fila = document.createElement("tr");
+
+        fila.append(crearCelda(`${producto.codigo} / ${producto.nombre}`));
+        fila.append(crearCelda(`$${Number(producto.precio).toFixed(2)}`));
+
+        const stockBajo = Number(producto.stock) <= LIMITE_STOCK_BAJO;
+        const stockCell = crearCelda(
+          stockBajo ? `${producto.stock} ⚠️ Bajo` : String(producto.stock)
+        );
+        if (stockBajo) stockCell.className = "stock-low";
+
+        fila.append(stockCell);
+
+        if (esAdmin()) {
+          const celdaAccion = document.createElement("td");
+          const boton = document.createElement("button");
+          boton.type = "button";
+          boton.className = "danger";
+          boton.textContent = "Eliminar";
+          boton.addEventListener("click", () => eliminarProducto(producto.codigo));
+          celdaAccion.appendChild(boton);
+          fila.append(celdaAccion);
+        }
+
+        tabla.append(fila);
+      }
+    }
+
+    function renderizarCarrito() {
+      const contenedor = $("items-carrito");
+      contenedor.replaceChildren();
+
+      let totalUsd = 0;
+
+      for (const item of carrito) {
+        const producto = inventario.find(p => p.codigo === item.codigo);
+        if (!producto) continue;
+
+        totalUsd += Number(producto.precio) * item.cantidad;
+
+        const fila = document.createElement("div");
+        fila.className = "cart-item";
+
+        const detalle = document.createElement("span");
+        detalle.className = "cart-detail";
+        detalle.textContent = `${producto.nombre} × ${item.cantidad} — $${(Number(producto.precio) * item.cantidad).toFixed(2)}`;
+
+        const controles = document.createElement("span");
+        controles.className = "cart-controls";
+
+        const menos = document.createElement("button");
+        menos.type = "button";
+        menos.textContent = "−";
+        menos.addEventListener("click", () => cambiarCantidad(item.codigo, -1));
+
+        const mas = document.createElement("button");
+        mas.type = "button";
+        mas.textContent = "+";
+        mas.addEventListener("click", () => cambiarCantidad(item.codigo, 1));
+
+        controles.append(menos, mas);
+        fila.append(detalle, controles);
+        contenedor.append(fila);
+      }
+
+      const tasa = Number($("tasa-cambio").value) || 0;
+      $("total-usd").textContent = `$${totalUsd.toFixed(2)}`;
+      $("total-bs").textContent = `${(totalUsd * tasa).toLocaleString("es-VE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })} Bs`;
+    }
+
+    function agregarAlCarrito(codigo) {
+      const producto = inventario.find(p => p.codigo === codigo);
+      if (!producto) {
+        alert(`Producto no registrado: ${codigo}`);
+        return;
+      }
+
+      const item = carrito.find(i => i.codigo === codigo);
+      if ((item?.cantidad || 0) >= Number(producto.stock)) {
+        alert(`Sin stock disponible para ${producto.nombre}.`);
+        return;
+      }
+
+      if (item) item.cantidad++;
+      else carrito.push({ codigo, cantidad: 1 });
+
+      renderizarCarrito();
+    }
+
+    function cambiarCantidad(codigo, cambio) {
+      const item = carrito.find(i => i.codigo === codigo);
+      const producto = inventario.find(p => p.codigo === codigo);
+      if (!item || !producto) return;
+
+      if (cambio > 0 && item.cantidad >= Number(producto.stock)) {
+        alert("Límite de stock alcanzado.");
+        return;
+      }
+
+      item.cantidad += cambio;
+      if (item.cantidad <= 0) {
+        carrito = carrito.filter(i => i.codigo !== codigo);
+      }
+      renderizarCarrito();
+    }
+
+    async function guardarInventario() {
+      const tx = db.transaction("productos", "readwrite");
+      const done = transaccionTerminada(tx);
+      const store = tx.objectStore("productos");
+
+      store.clear();
+      inventario.forEach(p => store.put(p));
+
+      await done;
+    }
+
+    $("login-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const username = $("login-user").value.trim();
+      const password = $("login-pass").value;
+
+      const user = USERS[username];
+      if (!user || user.password !== password) {
+        alert("Usuario o contraseña incorrectos.");
+        return;
+      }
+
+      usuarioActual = { username, role: user.role };
+      $("login-pass").value = "";
+      mostrarApp();
+      actualizarTablaProductos();
+      renderizarCarrito();
+    });
+
+    $("logout").addEventListener("click", () => {
+      usuarioActual = null;
+      carrito = [];
+      $("reporte-ventas").hidden = true;
+      $("reporte-ventas").replaceChildren();
+      mostrarApp();
+    });
+
+    $("product-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!requireAdmin()) return;
+
+      const codigo = $("prod-codigo").value.trim();
+      const nombre = $("prod-nombre").value.trim();
+      const precio = Number($("prod-precio").value);
+      const stock = Number($("prod-stock").value);
+
+      if (!codigo || !nombre || !Number.isFinite(precio) || precio < 0 ||
+          !Number.isInteger(stock) || stock < 0) {
+        alert("Verifica el código, nombre, precio y stock.");
+        return;
+      }
+
+      const existente = inventario.find(p => p.codigo === codigo);
+
+      if (existente) {
+        existente.nombre = nombre;
+        existente.precio = precio;
+        existente.stock = stock;
+      } else {
+        inventario.push({ codigo, nombre, precio, stock });
+      }
+
+      try {
+        await guardarInventario();
+        await cargarDatos();
+        actualizarTablaProductos();
+        renderizarCarrito();
+        $("product-form").reset();
+      } catch (error) {
+        console.error(error);
+        alert("No se pudo guardar el producto.");
+      }
+    });
+
+    async function eliminarProducto(codigo) {
+      if (!requireAdmin()) return;
+      if (!confirm("¿Eliminar este producto del inventario?")) return;
+
+      try {
+        const tx = db.transaction("productos", "readwrite");
+        const done = transaccionTerminada(tx);
+        tx.objectStore("productos").delete(codigo);
+        await done;
+
+        inventario = inventario.filter(p => p.codigo !== codigo);
+        carrito = carrito.filter(item => item.codigo !== codigo);
+
+        actualizarTablaProductos();
+        renderizarCarrito();
+      } catch (error) {
+        console.error(error);
+        alert("No se pudo eliminar el producto.");
+      }
+    }
+
+    $("lector-ventas").addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+
+      const codigo = event.currentTarget.value.trim();
+      event.currentTarget.value = "";
+      if (codigo) agregarAlCarrito(codigo);
+    });
+
+    $("vaciar-carrito").addEventListener("click", () => {
+      carrito = [];
+      renderizarCarrito();
+    });
+
+    $("tasa-cambio").addEventListener("input", renderizarCarrito);
+
+    $("tasa-cambio").addEventListener("change", async () => {
+      if (!esAdmin()) {
+        $("tasa-cambio").value = await cargarTasa();
+        renderizarCarrito();
+        return;
+      }
+
+      const tasa = Number($("tasa-cambio").value);
+      if (!Number.isFinite(tasa) || tasa <= 0) {
+        alert("La tasa debe ser mayor que cero.");
+        $("tasa-cambio").value = await cargarTasa();
+        renderizarCarrito();
+        return;
+      }
+
+      try {
+        await guardarTasa(tasa);
+        renderizarCarrito();
+      } catch (error) {
+        console.error(error);
+        alert("No se pudo guardar la tasa.");
+      }
+    });
+
+    $("procesar-venta").addEventListener("click", async () => {
+      if (carrito.length === 0) {
+        alert("La cuenta está vacía.");
+        return;
+      }
+
+      const productosVendidos = [];
+      for (const item of carrito) {
+        const producto = inventario.find(p => p.codigo === item.codigo);
+        if (!producto) {
+          alert(`Producto no encontrado: ${item.codigo}`);
+          return;
+        }
+        if (Number(producto.stock) < item.cantidad) {
+          alert(`Stock insuficiente para ${producto.nombre}.`);
+          return;
+        }
+
+        const actualizado = {
+          ...producto,
+          stock: Number(producto.stock) - item.cantidad
+        };
+
+        productosVendidos.push({
+          codigo: producto.codigo,
+          nombre: producto.nombre,
+          precio: Number(producto.precio),
+          cantidad: item.cantidad,
+          actualizado
+        });
+      }
+
+      const totalUsd = productosVendidos.reduce(
+        (suma, p) => suma + Number(p.precio) * p.cantidad,
+        0
+      );
+
+      const tasaUsada = Number($("tasa-cambio").value) || 0;
+
+      try {
+        const tx = db.transaction(["productos", "ventas"], "readwrite");
+        const done = transaccionTerminada(tx);
+        const productosStore = tx.objectStore("productos");
+        const ventasStore = tx.objectStore("ventas");
+
+        for (const p of productosVendidos) {
+          productosStore.put(p.actualizado);
+        }
+
+        ventasStore.add({
+          fecha: new Date().toISOString(),
+          tasa: tasaUsada,
+          totalUsd,
+          totalBs: totalUsd * tasaUsada,
+          productos: productosVendidos.map(p => ({
+            codigo: p.codigo,
+            nombre: p.nombre,
+            precio: p.precio,
+            cantidad: p.cantidad
+          }))
+        });
+
+        await done;
+
+        carrito = [];
+        await cargarDatos();
+        actualizarTablaProductos();
+        renderizarCarrito();
+        alert("✅ Venta registrada e inventario actualizado.");
+      } catch (error) {
+        console.error(error);
+        alert("No se pudo registrar la venta.");
+      }
+    });
+
+    function inicioSemana() {
+      const fecha = new Date();
+      fecha.setHours(0, 0, 0, 0);
+      fecha.setDate(fecha.getDate() - ((fecha.getDay() + 6) % 7));
+      return fecha;
+    }
+
+    function agregarLinea(panel, texto, className = "report-line") {
+      const p = document.createElement("p");
+      p.className = className;
+      p.textContent = texto;
+      panel.append(p);
+    }
+
+    $("ver-informe").addEventListener("click", () => {
+      if (!requireAdmin()) return;
+
+      const panel = $("reporte-ventas");
+      panel.hidden = false;
+      panel.replaceChildren();
+
+      const inicio = inicioSemana();
+      const ventasSemana = historialVentas.filter(v => new Date(v.fecha) >= inicio);
+
+      const totalUsd = ventasSemana.reduce((sum, v) => sum + Number(v.totalUsd || 0), 0);
+      const totalBs = ventasSemana.reduce((sum, v) => sum + Number(v.totalBs || 0), 0);
+
+      const titulo = document.createElement("h3");
+      titulo.textContent =
+        `Informe semanal: ${ventasSemana.length} ventas — ` +
+        `$${totalUsd.toFixed(2)} — ` +
+        `${totalBs.toLocaleString("es-VE", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })} Bs`;
+
+      panel.append(titulo);
+
+      const porDia = new Map();
+
+      for (const venta of ventasSemana) {
+        const fecha = new Date(venta.fecha);
+        const clave = [
+          fecha.getFullYear(),
+          String(fecha.getMonth() + 1).padStart(2, "0"),
+          String(fecha.getDate()).padStart(2, "0")
+        ].join("-");
+
+        const dia = porDia.get(clave) || { cantidad: 0, usd: 0, bs: 0 };
+        dia.cantidad++;
+        dia.usd += Number(venta.totalUsd || 0);
+        dia.bs += Number(venta.totalBs || 0);
+        porDia.set(clave, dia);
+      }
+
+      if (porDia.size === 0) {
+        agregarLinea(panel, "Todavía no hay ventas esta semana.");
+      } else {
+        for (const [clave, dia] of [...porDia.entries()].sort()) {
+          const fecha = new Date(`${clave}T12:00:00`).toLocaleDateString("es-VE");
+          agregarLinea(
+            panel,
+            `${fecha}: ${dia.cantidad} ventas — $${dia.usd.toFixed(2)} — ` +
+            `${dia.bs.toLocaleString("es-VE", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })} Bs`
+          );
+        }
+      }
+
+      const tituloStock = document.createElement("h3");
+      tituloStock.textContent = "⚠️ Stock bajo";
+      tituloStock.style.marginTop = "18px";
+      panel.append(tituloStock);
+
+      const bajos = inventario.filter(p => Number(p.stock) <= LIMITE_STOCK_BAJO);
+
+      if (bajos.length === 0) {
+        agregarLinea(panel, "No hay productos con stock bajo.");
+      } else {
+        bajos.forEach(producto => {
+          agregarLinea(
+            panel,
+            `${producto.nombre} (${producto.codigo}): ${producto.stock} unidades`
+          );
+        });
+      }
+    });
+
+    function validarCopia(datos) {
+      return !!(
+        datos &&
+        Array.isArray(datos.inventario) &&
+        Array.isArray(datos.historialVentas) &&
+        datos.inventario.every(p =>
+          p &&
+          typeof p.codigo === "string" &&
+          typeof p.nombre === "string" &&
+          Number.isFinite(Number(p.precio)) &&
+          Number.isInteger(Number(p.stock)) &&
+          Number(p.stock) >= 0
+        ) &&
+        datos.historialVentas.every(v =>
+          v &&
+          typeof v.fecha === "string" &&
+          Number.isFinite(Number(v.totalUsd)) &&
+          Array.isArray(v.productos)
+        )
+      );
+    }
+
+    async function exportarCopia() {
+      if (!requireAdmin()) return;
+
+      try {
+        const datos = {
+          version: 1,
+          exportado: new Date().toISOString(),
+          inventario,
+          historialVentas,
+          tasa: await cargarTasa()
+        };
+
+        const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `backup-pos-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        alert("Copia de seguridad exportada.");
+      } catch (error) {
+        console.error(error);
+        alert("No se pudo exportar la copia.");
+      }
+    }
+
+    async function importarCopia(event) {
+      const archivo = event.target.files[0];
+      if (!archivo) return;
+
+      if (!requireAdmin()) {
+        event.target.value = "";
+        return;
+      }
+
+      if (!confirm("Esto reemplazará inventario, tasa e historial. ¿Continuar?")) {
+        event.target.value = "";
+        return;
+      }
+
+      try {
+        const texto = await archivo.text();
+        const datos = JSON.parse(texto);
+
+        if (!validarCopia(datos)) {
+          throw new Error("Formato de copia inválido.");
+        }
+
+        const tx = db.transaction(["productos", "ventas", "ajustes"], "readwrite");
+        const done = transaccionTerminada(tx);
+        const productsStore = tx.objectStore("productos");
+        const salesStore = tx.objectStore("ventas");
+        const ajustesStore = tx.objectStore("ajustes");
+
+        productsStore.clear();
+        salesStore.clear();
+
+        datos.inventario.forEach(p => productsStore.put(p));
+        datos.historialVentas.forEach(v => salesStore.put(v));
+
+        ajustesStore.put({
+          clave: "tasa",
+          valor: String(Number(datos.tasa) > 0 ? datos.tasa : 60)
+        });
+
+        await done;
+
+        inventario = datos.inventario;
+        historialVentas = datos.historialVentas;
+        $("tasa-cambio").value = Number(datos.tasa) > 0 ? datos.tasa : 60;
+
+        actualizarTablaProductos();
+        renderizarCarrito();
+        $("reporte-ventas").hidden = true;
+        $("reporte-ventas").replaceChildren();
+
+        alert("Copia restaurada correctamente.");
+      } catch (error) {
+        console.error(error);
+        alert("No se pudo restaurar la copia.");
+      } finally {
+        event.target.value = "";
+      }
+    }
+
+    $("guardar-copia").addEventListener("click", exportarCopia);
+    $("restaurar-copia").addEventListener("click", () => $("archivo-copia").click());
+    $("archivo-copia").addEventListener("change", importarCopia);
+
+    async function init() {
+      db = await abrirBaseDatos();
+      await cargarDatos();
+
+$("limite-stock-texto").textContent = String(LIMITE_STOCK_BAJO);
+      mostrarApp();
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js").catch(console.error);
+      }
+
+      actualizarTablaProductos();
+      renderizarCarrito();
+    }
+
+    init();
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js");
+      });
+    }
+  </script>
+</body>
+</html>
